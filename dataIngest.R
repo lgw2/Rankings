@@ -34,3 +34,4 @@ browseURL(url)
 
 # Extract HTML tables as dataframes
 listOfTables <- readHTMLTable(url, stringsAsFactors=FALSE)
+table38 <- listOfTables[38]
