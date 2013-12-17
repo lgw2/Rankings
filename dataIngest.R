@@ -34,4 +34,7 @@ browseURL(url)
 
 # Extract HTML tables as dataframes
 listOfTables <- readHTMLTable(url, stringsAsFactors=FALSE)
+# this might have been the wrong thing to do. but i think i've got what I wanted...
 table38 <- listOfTables[38]
+finalRankingsDF <- table38[[1]]
+finalRankings2011 <- finalRankingsDF[4:303,]
