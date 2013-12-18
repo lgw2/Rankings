@@ -27,7 +27,7 @@ library(XML)
 library(stringr)
 
 # USAU page
-url <- "http://www.usaultimate.org/archives/2011_college.aspx"
+url <- "http://scores.usaultimate.org/scores2011/#college-open/rankings"
 
 # Open a browser to see the web page
 browseURL(url)
