@@ -2,6 +2,9 @@
 # takes a data frame containing all of the new game results and returns a data frame containing
 # the new rankings (new average points per game for every team).
 # assume the the all games data frame contains names of teams as characters NOT factors.
+# newGamesDF needs columns called "WinningTeam" "LosingTeam" "WinnerScore" "LoserScore" "WinningPointsInitial"
+# "LosingPointsInitial" "WinningGamesPlayed" "LosingGamesPlayed".
+
 
 computeNewRank <- function(newGamesDF) {
   
@@ -36,6 +39,7 @@ fillPointTotals<- function(newGamesDF, pointTotals) {
 computeNewAvePoints <- function(newGamesDF, pointTotals) {
   
   originalPointTotals <- pointTotals
+  print("Saved original point totals")
   
   # start with a data frame containing info for all games: winner, loser, winner score, 
   # loser score, current average points earned per game for winning team, current  average
@@ -43,38 +47,56 @@ computeNewAvePoints <- function(newGamesDF, pointTotals) {
   
   # compute the points earned by the winner and loser for each game.
   WinningPointsEarned <- newGamesDF$LosingPointsInitial + 400/(pmax(2/3,
-                            2.5*(newGamesDF$LosingScore/newGamesDF$WinningScore)^2))
+                            2.5*(newGamesDF$LoserScore/newGamesDF$WinnerScore)^2))
   LosingPointsEarned <- newGamesDF$WinningPointsInitial - 400/(pmax(2/3,
-                            2.5*(newGamesDF$LosingScore/newGamesDF$WinningScore)^2))
+                            2.5*(newGamesDF$LoserScore/newGamesDF$WinnerScore)^2))
+  
+  print("Computed points earned for every game")
   
   # put those new points into the newGames data frame as WinningPointsEarned and 
   # LosingPointsEarned
   newGamesDF <- data.frame(newGamesDF, WinningPointsEarned, LosingPointsEarned)
   
+  print("Put points earned for every game into new games data frame")
+  
   # update total current points for each team from wins
   pointTotals <- addAllWinningGames(newGamesDF, pointTotals)
   
+  print("updated toatl current points for each team in pointTotals from winning")
+  
   # update total current points for each team from losses
   pointTotals <- addAllLosingGames(newGamesDF, pointTotals)
+  
+  print("updated total current points for each team in pointTotals for losing")
   
   # divide point totals by games played to get a current average points per game for
   # each team, and add it to the pointTotals data frame
   pointTotals <- data.frame(pointTotals, pointTotals$TeamPoints/pointTotals$GamesPlayed)
   
+  print("averaged points per game")
+  
   # update winning points initial
   newGamesDF <- updateWinningPointsInitial(newGamesDF, pointTotals)
   
+  print("updated winning points initial in new games data frame")
+  
   # update losing points initial
   newGamesDF <- updateLosingPointsInitial(newGamesDF, pointTotals)
+  
+  print("updated losing points initial in new games data frame")
   
   # delete earned points columns
   newGamesDF$WinningPointsEarned <- NULL
   newGamesDF$LosingPointsEarned <- NULL
   
+  print("delted earnred points columns")
+  
   # restore pointTotals to original
   pointTotals <- data.frame(originalPointTotals, pointTotals[length(pointTotals)])
   
-  # we now have a data frame with columns for WinningTeam, LosingTeam, WinningScore, Losingscore,
+  print("Restored pointsTotals to original")
+  
+  # we now have a data frame with columns for WinningTeam, LosingTeam, WinnerScore, LoserScore,
   # WinningPointsInitial, LosingPointsInitial.
   # Winning and Losing points initial are now the current average points per game for the winning
   # and losing teams respectively.
@@ -120,4 +142,15 @@ updateLosingPointsInitial <- function(df, pointTotals) {
     df[index, "LosingPointsInitial"] <- winnerPoints
   }
   return(df)
+}
+
+deleteAllLetterScores <- function(df) {
+  toDelete <- vector(mode="numeric",length=0)
+  for (index in 1:length(rownames(df))) {
+    if (is.na(df[index, "WinnerScore"]) | is.na(df[index, "LoserScore"])) {
+      toDelete <- c(toDelete, index)
+    }
+  }
+  toDelete <- toDelete*-1
+  return(df[toDelete,])
 }
