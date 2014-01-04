@@ -13,9 +13,12 @@ computeNewRank <- function(newGamesDF) {
   rownames(pointTotals) <- teams
   pointTotals <- fillPointTotals(newGamesDF, pointTotals)
   
-  resultList <- computeNewAvePoints(newGamesDF, pointTotals)
-  newGamesDF <- resultList$a
-  pointTotals <- resultList$b
+  
+  for (x in 1:300) {
+    resultList <- computeNewAvePoints(newGamesDF, pointTotals)
+    newGamesDF <- resultList$a
+    pointTotals <- resultList$b
+  }
   
 }
 
@@ -144,13 +147,54 @@ updateLosingPointsInitial <- function(df, pointTotals) {
   return(df)
 }
 
+
+# function to get rid of W, F, L from WinnerScore and LoserScore
 deleteAllLetterScores <- function(df) {
   toDelete <- vector(mode="numeric",length=0)
   for (index in 1:length(rownames(df))) {
     if (is.na(df[index, "WinnerScore"]) | is.na(df[index, "LoserScore"])) {
       toDelete <- c(toDelete, index)
-    }
+      print(index)
+    } 
   }
   toDelete <- toDelete*-1
   return(df[toDelete,])
+}
+
+DFCleanup <- function(df) {
+  # give message if missing WinningTeam, LosingTeam, WinnerScore, or LoserScore
+  # delete games with letter scores
+  # add columns of zeros for missing WinningPointsInitial, LosingPointsInitial, WinningGamesPlayed,
+  # LosingGamesPlayed
+  
+  columns <- c("WinningTeam", "LosingTeam", "WinnerScore", "LoserScore")
+  for (index in 1:4) {
+    column <- columns[index]
+    print(column)
+    if (!(column %in% names(df))) {
+      print(paste(column, "is missing from the data frame."))
+    } else {
+      if (column == "WinningTeam" || column == "LosingTeam") {
+        df[,column] <- as.character(df[,column])
+      } else {
+        df[,column] <- as.numeric(as.character(df[,column]))
+      }
+    } 
+  }  
+  
+  df <- deleteAllLetterScores(df)
+
+  columns <- c("WinningPointsInitial", "LosingPointsInitial", "WinningGamesPlayed",
+               "LosingGamesPlayed")
+  for (index in 1:4) {
+    column <- columns[index]
+    print(column)
+    if (!(column %in% names(df))) {
+      df <- data.frame(df, rep(0,length(df[,1])))
+      names(df)[length(names(df))] <- column
+    }
+  }
+    
+  return(df)
+  
 }
