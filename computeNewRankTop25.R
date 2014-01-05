@@ -190,7 +190,11 @@ DFCleanup <- function(df) {
     column <- columns[index]
     print(column)
     if (!(column %in% names(df))) {
-      df <- data.frame(df, rep(0,length(df[,1])))
+      if (column == "WinningPointsInitial" || column == "LosingPointsInitial") {
+        df <- data.frame(df, rep(1000,length(df[,1])))
+      } else {
+        df <- data.frame(df, rep(0,length(df[,1])))
+      }
       names(df)[length(names(df))] <- column
     }
   }
